@@ -1,5 +1,5 @@
 <template>
-  <tr v-if="userList.length > 0" v-for="(item,index) in userList" :key="item.id">
+  <tr v-if="viewer == 0" v-for="(item,index) in userList" :key="item.id">
     <th>{{index + 1}}</th>
     <th>{{item.id}}</th>
     <th>{{item.name}}</th>
@@ -10,6 +10,17 @@
     <th><button class="btn" @click="$emit('deleteList', index)"><i class="fa-solid fa-trash"></i></button></th>
     <th><button class="btn" @click="$emit('addMiddleList', index)"><i class="fa-solid fa-circle-plus"></i></button></th>
   </tr>
+  <tr v-if="viewer == 1" v-for="(item,index) in filteredList" :key="item.id">
+    <th>{{index + 1}}</th>
+    <th>{{item.id}}</th>
+    <th>{{item.name}}</th>
+    <th>{{ item.username }}</th>
+    <th>{{ item.email }}</th>
+    <th>{{ item.address.city }}</th>
+    <th><el-button type="success" class="btn" @click="$emit('editList', index)"><i class="fa-solid fa-pen-to-square"></i></el-button></th>
+    <th><el-button type="info" class="btn" @click="$emit('deleteList', index)"><i class="fa-solid fa-trash"></i></el-button></th>
+    <th><button class="btn" @click="$emit('addMiddleList', index)"><i class="fa-solid fa-circle-plus"></i></button></th>
+  </tr>
 </template>
 
 <script>
@@ -17,7 +28,25 @@ export default {
   props:{
     userList: {
       required:true
-    }
+    },
+    filteredList: {
+      required: true
+    },
+    viewer: {
+      required: true
+    },
+    counter1: {
+      required: true
+    },
+    counter2: {
+      required: true
+    },
+    counter3: {
+      required: true
+    },
+    counter4: {
+      required: true
+    },
   },
   methods:{
 

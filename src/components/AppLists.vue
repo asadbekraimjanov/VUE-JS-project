@@ -4,33 +4,44 @@
       <tr>
         <th>№</th>
         <th>ID</th>
-        <th>Name</th>
-        <th>Username</th>
-        <th>email</th>
-        <th>Address</th>
+        <th>Name<br><input v-model="nameInput" @input="filter" class="search-input" type="search" placeholder="Seach.."></th>
+        <th>Username<br><input v-model="usernameInput" @input="filter" class="search-input" type="search" placeholder="Seach.."></th>
+        <th>email<br><input v-model="emailInput" @input="filter" class="search-input" type="search" placeholder="Seach.."></th>
+        <th>Address<br><input v-model="addressInput" @input="filter" class="search-input" type="search" placeholder="Seach.."></th>
         <th>Edit</th>
-        <th style="width: 70px">Delete</th>
+        <th style="width: 50px">Delete</th>
         <th>Add</th>
       </tr>
     </thead>
     <tbody>
-      <app-list @editList="editListItem" @deleteList="deleteListItem" @addMiddleList="addMiddle" :userList="userList"></app-list>
+      <app-list
+          @editList="editListItem"
+          @deleteList="deleteListItem"
+          @addMiddleList="addMiddle"
+          :counter1="counter1"
+          :counter2="counter2"
+          :counter3="counter3"
+          :counter4="counter4"
+          :viewer="viewer"
+          :userList="userList"
+          :filteredList="filteredUserList"
+      ></app-list>
     </tbody>
   </table>
   <button @click="addNewUser" class="btn btn-add" :class="{'main-hidden' : hideViewer}">New User</button>
+  <button @click="inputClr" class="btn delete-input">Clr</button>
   <div v-if="newUserWindow" class="new-user">
     <button class="exit-btn" @click="addWindowClose">X</button>
     <p v-if="openNewUser">Yangi user qo'shish</p>
     <p v-if="openEditUser">O'zgartirish</p>
     <form class="form-control">
-<!--      <label for="addId">ID <input id="addId" type="number" placeholder="id" v-model="newUser.id"></label>-->
       <label for="addName">Nomi <input id="addName" type="text" placeholder="Nomi" v-model="newUser.name"></label>
       <label for="addUsername">Username <input id="addUsername" type="text" placeholder="username" v-model="newUser.username"></label>
       <label for="addEmail">Email <input id="addEmail" type="email" placeholder="e-mail" v-model="newUser.email"></label>
       <label for="addAddress">Address <input id="addAddress" type="text" placeholder="address" v-model="newUser.address.city"></label>
-      <button v-if="openNewUser" @click="addNewUserlist" class="btn btn-add_2">Qo'shish</button>
-      <button v-if="openEditUser" @click="editUserList" class="btn btn-add_2">O'zgartirish</button>
-      <button v-if="middleAdd" @click="middleAddList" class="btn btn-add_2">Qo'shish</button>
+      <button v-if="openNewUser" :disabled="newUser.name.length===0" @click="addNewUserlist" class="btn btn-add_2">Qo'shish</button>
+      <button v-if="openEditUser" :disabled="newUser.name.length===0" @click="editUserList" class="btn btn-add_2">O'zgartirish</button>
+      <button v-if="middleAdd" :disabled="newUser.name.length===0" @click="middleAddList" class="btn btn-add_2">Qo'shish</button>
     </form>
   </div>
 </template>
@@ -41,11 +52,17 @@ import axios from "axios";
 export default {
   data(){
     return {
+      viewer: 0,
       middleAdd: false,
       openEditUser: false,
       openNewUser: false,
       hideViewer: false,
       newUserWindow: false,
+      nameInput: '',
+      usernameInput: '',
+      emailInput: '',
+      addressInput: '',
+      filteredUserList: [],
       userList: [],
       idx: null,
       num: null,
@@ -61,8 +78,29 @@ export default {
     }
   },
   methods:{
+    inputClr(){
+      this.nameInput = ''
+      this.usernameInput = ''
+      this.emailInput = ''
+      this.addressInput = ''
+      this.viewer = 0
+    },
+    filter(){
+      this.filteredUserList = []
+        for (let i = 0; i < this.userList.length; i++){
+          if (this.userList[i].name.toLowerCase().includes(this.nameInput) && this.userList[i].username.toLowerCase().includes(this.usernameInput) && this.userList[i].email.toLowerCase().includes(this.emailInput) && this.userList[i].address.city.toLowerCase().includes(this.addressInput)) {
+            this.filteredUserList.push(this.userList[i])
+          }
+        }
+        if (this.nameInput == '' && this.usernameInput == '' && this.emailInput == '' && this.addressInput == ''){
+          this.viewer = 0
+        }
+        else {
+          this.viewer = 1
+        }
+    },
+
     middleAddList(){
-      console.log('idx: ' + this.idx)
       axios.post('https://jsonplaceholder.typicode.com/users', {
         name: this.newUser.name,
         username: this.newUser.username,
@@ -72,7 +110,6 @@ export default {
         }
       }).then(rest => {
         this.userList.splice(this.idx, 0, rest.data)
-        // console.log(rest.data)
       }).catch(function (error){
         console.log(error)
       })
@@ -133,6 +170,7 @@ export default {
       this.newUserWindow = false
       this.openNewUser = false
       this.openEditUser = false
+      this.middleAdd = false
 
       this.newUser.name = ''
       this.newUser.username = ''
@@ -140,12 +178,10 @@ export default {
       this.newUser.address.city = ''
     },
     deleteListItem(id){
-      // this.userList.splice(id, 1)
       axios
         .delete("https://jsonplaceholder.typicode.com/users/" + id)
         .then(response => {
           this.userList.splice(id, 1);
-          // console.log(response);
       });
     },
     addNewUser(){
@@ -154,7 +190,6 @@ export default {
       this.openNewUser = true
     },
     getUsers(){
-      // console.log(this.userList)
       axios.get('https://jsonplaceholder.typicode.com/users')
           .then(rest => {
             this.userList = rest.data
@@ -172,7 +207,6 @@ export default {
         }
       }).then(rest => {
         this.userList.push(rest.data)
-        // console.log(rest.data)
       }).catch(function (error){
         console.log(error)
       })
@@ -193,6 +227,27 @@ export default {
 </script>
 
 <style>
+.delete-input{
+  background-color: #757575;
+  font-weight: 600;
+  width: 100px;
+  color: #ffffff;
+  margin-left: 20px;
+}
+.delete-input:hover{
+  background-color: #3a3a3a;
+  color: #ffffff;
+}
+.search-input{
+  border-radius: 20px;
+  height: 30px;
+  width: 100%;
+  border: 2px solid #525252;
+  font-size: 16px;
+}
+.search-form input::placeholder{
+  padding-left: 30px;
+}
 .exit-btn{
   position: absolute;
   border: none;
@@ -231,6 +286,7 @@ export default {
   font-weight: 300;
   width: 70%;
   margin: 20px;
+  box-shadow: var(--el-box-shadow-lighter)
 }
 th{
   border: 1px solid #181818;
